@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type Match struct {
 	Id       int
@@ -15,5 +18,21 @@ type Match struct {
 }
 
 func checkMatch(match int) (bool, error) {
-	panic("not implemented")
+	// checks wether the match is in the db
+	stmt, err := db.Prepare("select * from match where id = ?;")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(match)
+	var resultid int
+	err = row.Scan(&resultid)
+	if err != nil {
+		return false, err
+	}
+	if resultid != match {
+		return false, errors.New("matchid missmatch")
+	}
+	return true, nil
 }
