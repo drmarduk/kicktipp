@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -20,7 +19,6 @@ type User struct {
 func checkExistingUser(name string) (bool, error) {
 	stmt, err := db.Prepare("SELECT count(*) FROM user WHERE name = ?;")
 	if err != nil {
-		log.Println("checkExistingUser: Error while preparing statement. " + err.Error())
 		return false, err
 	}
 	defer stmt.Close()
@@ -52,6 +50,10 @@ func NewUser(name, email, password string) (*User, error) {
 		}
 		return nil, errors.New("user already exists")
 	}
-	password = HashPassword(password)
+	var err error
+	password, err = HashPassword(password)
+	if err != nil {
+		return nil, err
+	}
 	return &User{Name: name, Email: email, Password: password}, nil
 }

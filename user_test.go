@@ -14,7 +14,7 @@ func TestNewUser(t *testing.T) {
 	}{
 		{"marduk", "mail@knilch.net", "password", ""},
 		{"", "mail@knilch.net", "password", "empty username"},
-		{"soda", "", "password", "empty mail"},
+		{"soda", "", "password", "empty email"},
 		{"evilpie", "mail@knilch.net", "", "empty password"},
 	}
 

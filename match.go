@@ -19,7 +19,7 @@ type Match struct {
 
 func checkMatch(match int) (bool, error) {
 	// checks wether the match is in the db
-	stmt, err := db.Prepare("select * from match where id = ?;")
+	stmt, err := db.Prepare("select id from match where id = ?;")
 	if err != nil {
 		return false, err
 	}
