@@ -1,8 +1,14 @@
 package main
 
-import "testing"
+import (
+	"database/sql"
+	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
+)
 
 func TestNewPrediction(t *testing.T) {
+	db, _ = sql.Open("sqlite3", "file:data/kicktipp.db")
 	tests := []struct {
 		user, match, goalshost, goalsguest int
 		overtime, shootout                 bool
