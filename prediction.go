@@ -16,10 +16,10 @@ type Prediction struct {
 }
 
 func NewPrediction(user, match, goalshost, goalsguest int, overtime, shootout bool) (*Prediction, error) {
-	if chk, err := validateUser(user); !chk && err != nil {
-		log.Println("NewPrediction: User could not be found in db. " + err.Error())
-		return nil, errors.New("user not found in db.")
-	}
+	//if chk, err := validateUser(user); !chk && err != nil {
+	//	log.Println("NewPrediction: User could not be found in db. " + err.Error())
+	//	return nil, errors.New("user not found in db.")
+	//}
 
 	if chk, err := checkMatch(match); !chk && err != nil {
 		log.Println("NewPrediction: Match could not be found in db. " + err.Error())
