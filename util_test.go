@@ -6,7 +6,7 @@ func TestHashPasswort(t *testing.T) {
 	tests := []struct {
 		in, out string
 	}{
-		{"test", "out"},
+		{"Test", "out"},
 	}
 
 	for _, tt := range tests {
