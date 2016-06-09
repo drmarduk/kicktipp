@@ -17,33 +17,23 @@ type User struct {
 	Points      int
 }
 
-func validateUser(userid int) (bool, error) {
-	// TODO: check if userid matches token in db
-	return false, errors.New("Not implemented")
-}
-
-func checkExistingUser(name string) bool {
-	//db, err := sql.Open("sqlite3", "file:data/kicktipp.db")
-	//if err != nil {
-	//		t.Fatal(err)
-	//}
+func checkExistingUser(name string) (bool, error) {
 	stmt, err := db.Prepare("SELECT count(*) FROM user WHERE name = ?;")
 	if err != nil {
 		log.Println("checkExistingUser: Error while preparing statement. " + err.Error())
-		return false
+		return false, err
 	}
 	defer stmt.Close()
 
 	result := stmt.QueryRow(name)
 	var count int = 0
 	if err := result.Scan(&count); err != nil {
-		log.Println("checkExistingUser: Error while scanning row. " + err.Error())
-		return false
+		return false, err
 	}
 	if count > 1 {
-		return false
+		return false, nil
 	}
-	return true
+	return true, nil
 }
 
 func NewUser(name, email, password string) (*User, error) {
@@ -56,9 +46,12 @@ func NewUser(name, email, password string) (*User, error) {
 	if password == "" {
 		return nil, errors.New("empty password")
 	}
-	if checkExistingUser(name) {
-		log.Printf("NewUser: User %s already exists.\n", name)
+	if chk, err := checkExistingUser(name); !chk {
+		if err != nil { // error while db connection foo
+			return nil, err
+		}
 		return nil, errors.New("user already exists")
 	}
+	password = HashPassword(password)
 	return &User{Name: name, Email: email, Password: password}, nil
 }
