@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -34,6 +35,45 @@ func checkExistingUser(name string) (bool, error) {
 	return true, nil
 }
 
+func OpenUser(name string) (*User, error) {
+	// get user data
+	stmt, err := db.Prepare("Select id, name, email, password, points from user where name = ?;")
+	if err != nil {
+		return nil, err
+	}
+
+	result := stmt.QueryRow(name)
+	u := &User{}
+
+	err = result.Scan(&u.Id, &u.Name, &u.Email, &u.Password, &u.Points)
+	if err != nil {
+		return nil, err
+	}
+
+	stmt.Close()
+	// get predictions
+	stmt, err = db.Prepare("Select userid, matchid, goalshost, goalsguest, overtime, shootout, points from prediction where userid = ?;")
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Query(u.Id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for !rows.Next() {
+		p := Prediction{}
+		err = rows.Scan(&p.UserId, &p.MatchId, &p.GoalsHost, &p.GoalsGuest, &p.Overtime, &p.Shootout, &p.Result)
+		if err != nil {
+			log.Println("OpenUser: Error while scanning user predictions. " + err.Error())
+			continue
+		}
+		u.Predictions = append(u.Predictions, p)
+	}
+
+	return u, nil
+}
 func NewUser(name, email, password string) (*User, error) {
 	if name == "" {
 		return nil, errors.New("empty username")
@@ -50,10 +90,25 @@ func NewUser(name, email, password string) (*User, error) {
 		}
 		return nil, errors.New("user already exists")
 	}
+
 	var err error
 	password, err = HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
 	return &User{Name: name, Email: email, Password: password}, nil
+}
+
+func (u *User) Save() error {
+	stmt, err := db.Prepare("Insert into user(name, email, password) values(?, ?, ?);")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(u.Name, u.Email, u.Password)
+	if err != nil {
+		return err
+	}
+	return nil
 }
