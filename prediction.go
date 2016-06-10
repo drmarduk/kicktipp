@@ -1,9 +1,6 @@
 package main
 
-import (
-	"errors"
-	"log"
-)
+import "errors"
 
 type Prediction struct {
 	UserId     int
@@ -22,11 +19,9 @@ func NewPrediction(user, match, goalshost, goalsguest int, overtime, shootout bo
 	//}
 
 	if chk, err := checkMatch(match); !chk && err != nil {
-		log.Println("NewPrediction: Match could not be found in db. " + err.Error())
 		return nil, errors.New("match not found in db.")
 	}
 	if goalshost < 0 || goalsguest < 0 {
-		log.Println("NewPrediction: Goals can not be negative")
 		return nil, errors.New("goalcount can not be negative")
 	}
 	if !overtime && shootout {
