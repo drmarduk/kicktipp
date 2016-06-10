@@ -1,12 +1,16 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 func TestHashPasswort(t *testing.T) {
 	tests := []struct {
-		in, out string
+		in string
 	}{
-		{"Test", "out"},
+		{"Test"},
 	}
 
 	for _, tt := range tests {
@@ -14,9 +18,12 @@ func TestHashPasswort(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if hash != tt.out {
-			t.Errorf("HashPassword(%s): got %s, expected %s\n", tt.in, hash, tt.out)
+
+		err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(tt.in))
+		if err != nil {
+			t.Errorf("HashPassword in lib")
 		}
+
 	}
 
 }
