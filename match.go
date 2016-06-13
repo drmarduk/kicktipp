@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"log"
 	"time"
 )
 
@@ -18,21 +18,26 @@ type Match struct {
 }
 
 func checkMatch(match int) (bool, error) {
-	// checks wether the match is in the db
-	stmt, err := db.Prepare("select id from match where id = ?;")
+	_, err := OpenMatch(match)
 	if err != nil {
+		log.Println(err.Error())
 		return false, err
+	}
+	return true, nil
+}
+
+func OpenMatch(id int) (*Match, error) {
+	stmt, err := db.Prepare("Select id, groupe, name, location, kickoff, host, guest, overtime, shootout from match where id = ?;")
+	if err != nil {
+		return nil, err
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRow(match)
-	var resultid int
-	err = row.Scan(&resultid)
+	row := stmt.QueryRow(id)
+	m := &Match{}
+	err = row.Scan(&m.Id, &m.Group, &m.Name, &m.Location, &m.Kickoff, &m.Host, &m.Guest, &m.Overtime, &m.Shootout)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	if resultid != match {
-		return false, errors.New("matchid missmatch")
-	}
-	return true, nil
+	return m, nil
 }
