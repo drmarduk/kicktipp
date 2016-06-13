@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 
@@ -47,9 +48,9 @@ func OpenUserBySession(s string) (*User, error) {
 	return OpenUser("sesson", s)
 }
 
-func OpenUser(field, value string) (*User, error) {
+func OpenUser(field string, value interface{}) (*User, error) {
 	// get user data
-	stmt, err := db.Prepare("Select id, name, email, password, points from user where " + field + " = ?;")
+	stmt, err := db.Prepare("Select id, name, email, password, session, points from user where " + field + " = ?;")
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +58,17 @@ func OpenUser(field, value string) (*User, error) {
 	result := stmt.QueryRow(value)
 	u := &User{}
 
-	err = result.Scan(&u.Id, &u.Name, &u.Email, &u.Password, &u.Session, &u.Points)
+	var _s sql.NullString
+	err = result.Scan(&u.Id, &u.Name, &u.Email, &u.Password, &_s, &u.Points)
 	if err != nil {
+		log.Println(err.Error())
 		return nil, err
+	}
+
+	if _s.Valid {
+		u.Session = _s.String
+	} else {
+		u.Session = ""
 	}
 
 	stmt.Close()
@@ -120,6 +129,21 @@ func (u *User) Save() error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(u.Name, u.Email, u.Password)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *User) GenerateSession() error {
+	stmt, err := db.Prepare("update user set session = ? where id = ?;")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	u.Session = "asdfasdf"
+	_, err = stmt.Exec(u.Session, u.Id)
 	if err != nil {
 		return err
 	}

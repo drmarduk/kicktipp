@@ -21,7 +21,10 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/", indexHandler)
-	log.Fatal(http.ListenAndServe("", nil))
+	http.HandleFunc("/", use(indexHandler, basicAuth))
+	http.HandleFunc("/main", use(mainHandler, basicAuth))
+	http.HandleFunc("/login", loginHandler)
+	http.HandleFunc("/register", registerHandler)
+	log.Fatal(http.ListenAndServeTLS("", "data/cert.pem", "data/key.pem", nil))
 
 }
