@@ -8,11 +8,11 @@ import (
 )
 
 type User struct {
-	Id       int
-	Name     string
-	Email    string
-	Password string
-
+	Id          int
+	Name        string
+	Email       string
+	Password    string
+	Session     string
 	Predictions []Prediction // Anzahl an getippten Spielen, bzw die Tipps
 	Points      int
 }
@@ -35,17 +35,29 @@ func checkExistingUser(name string) (bool, error) {
 	return true, nil
 }
 
-func OpenUser(name string) (*User, error) {
+func OpenUserById(id int) (*User, error) {
+	return OpenUser("id", id)
+}
+
+func OpenUserByName(name string) (*User, error) {
+	return OpenUser("name", name)
+}
+
+func OpenUserBySession(s string) (*User, error) {
+	return OpenUser("sesson", s)
+}
+
+func OpenUser(field, value string) (*User, error) {
 	// get user data
-	stmt, err := db.Prepare("Select id, name, email, password, points from user where name = ?;")
+	stmt, err := db.Prepare("Select id, name, email, password, points from user where " + field + " = ?;")
 	if err != nil {
 		return nil, err
 	}
 
-	result := stmt.QueryRow(name)
+	result := stmt.QueryRow(value)
 	u := &User{}
 
-	err = result.Scan(&u.Id, &u.Name, &u.Email, &u.Password, &u.Points)
+	err = result.Scan(&u.Id, &u.Name, &u.Email, &u.Password, &u.Session, &u.Points)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +86,7 @@ func OpenUser(name string) (*User, error) {
 
 	return u, nil
 }
+
 func NewUser(name, email, password string) (*User, error) {
 	if name == "" {
 		return nil, errors.New("empty username")
